@@ -35,14 +35,15 @@ public class SkipList<T extends Comparable<? super T>> {
 			return (node.getValue().equals(item));
 		}
 	}
+
+	public void clear(){
+		head = new SkipListNode<T>(null);
+	}
 	/**
 	 * Finds the node of a value, or returns the node directly left of where that value would go
 	 * @param item Item to find
 	 * @return Node of value "item", or the node to the left of where that should go
 	 */
-	public void clear(){
-		head = new SkipListNode<T>(null);
-	}
 	private SkipListNode<T> findNodeForValue(T item){
 		SkipListNode<T> pointer = head;
 		boolean done = false;
