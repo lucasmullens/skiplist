@@ -34,6 +34,8 @@ public class SkipListNode<T> {
 		this.right = right;
 	}
 	public T getValue() {
+		 //used for timing/debugging
+		 SkipList.readCount++;
 		return value;
 	}
 	public void setValue(T value) {

@@ -1,6 +1,7 @@
 public class SkipList<T extends Comparable<? super T>> {
-	SkipListNode<T> head;
-	int height = 1;
+	private SkipListNode<T> head;
+//	private int height = 0;//zero is the bottom row's height
+	public static int readCount = 0;
 	public SkipList(){
 		//create 2 default nodes
 		head = new SkipListNode<T>(null);
@@ -11,6 +12,52 @@ public class SkipList<T extends Comparable<? super T>> {
 		newNode.setRight(nodeToLeft.getRight());
 		newNode.setLeft(nodeToLeft);
 		nodeToLeft.setRight(newNode);
+		SkipListNode<T> lastNode = newNode;
+		while (coinFlip()){
+			//create new node above
+			SkipListNode<T> stackedNode = new SkipListNode<T>(item);
+			//link vertically
+			stackedNode.setDown(lastNode);
+			lastNode.setUp(stackedNode);
+			//link horizontally...
+			//get node to the left (ntl) by traversing the data structure
+			SkipListNode<T> ntl = getNodeToLeftOf(stackedNode);
+			SkipListNode<T> ntr = ntl.getRight();
+			stackedNode.setLeft(ntl);
+			stackedNode.setRight(ntr);
+			//make other nodes point to this one
+			ntl.setRight(stackedNode);
+			if (ntr != null){
+				ntr.setLeft(stackedNode);
+			}
+			lastNode = stackedNode;
+		}
+	}
+	/**
+	 * Finds a node to the left of a node when there aren't horizontal links.
+	 * Algorithm: 
+	 * Go down 1, travel left checking if any node has a node above it.
+	 * if it does, that node is to the left of our node.
+	 * @param node The node we want to find the node to the left of
+	 * @return the node to the left of our node
+	 */
+	private SkipListNode<T> getNodeToLeftOf(SkipListNode<T> node) {
+		//go one down
+		SkipListNode<T> current = node.getDown();
+		//now loop going to the left of the structure, trying to find a node at this level
+		while (current.getLeft() != null){//loop all the way to the left
+			current = current.getLeft();
+			if (current.getUp() != null){
+				return current.getUp();
+			}
+		}
+		//if it makes it this far, it has reached the end on the left.
+		//we need to create a header node for it.
+		SkipListNode<T> newHead = new SkipListNode<T>(null);
+		head.setUp(newHead);
+		newHead.setDown(head);
+		head = newHead;
+		return head;
 	}
 	/**
 	 * Removes an item from the SkipList
@@ -19,14 +66,29 @@ public class SkipList<T extends Comparable<? super T>> {
 	 */
 	public boolean remove(T item){
 		SkipListNode<T> node = findNodeForValue(item);
+		//if the node found holds null or isn't equal to the item, do nothing
+		//item not found.
 		if (node.getValue() == null || !node.getValue().equals(item)){
 			return false;
 		}
-		node.getLeft().setRight(node.getRight());
-		if (node.getRight() != null)
-			node.getRight().setLeft(node.getLeft());
+		boolean top = false;
+		while (!top){			
+			node.getLeft().setRight(node.getRight());
+			if (node.getRight() != null)
+				node.getRight().setLeft(node.getLeft());
+			if (node.getUp() != null){
+				node = node.getUp();//delete all nodes going upward
+			} else {
+				top = true; //exit
+			}
+		}
 		return true;
 	}
+	/**
+	 * Finds if a value exists in our skip list
+	 * @param item the item to search for
+	 * @return whether it exists
+	 */
 	public boolean contains(T item){
 		SkipListNode<T> node = findNodeForValue(item);
 		if (node.getValue() == null){
@@ -36,6 +98,9 @@ public class SkipList<T extends Comparable<? super T>> {
 		}
 	}
 
+	/**
+	 * Clears the list
+	 */
 	public void clear(){
 		head = new SkipListNode<T>(null);
 	}
@@ -60,5 +125,24 @@ public class SkipList<T extends Comparable<? super T>> {
 			}
 		}
 		return pointer;
+	}
+	/**
+	 * Flips a coin. Returns true 50% of the time.
+	 * Used to determine whether to add a node above.
+	 * @return whether to add a node above
+	 */
+	private boolean coinFlip(){
+		return (Math.random()>.5);
+	}
+	/**
+	 * Runs a the contains() function and keeps track of the number of reads
+	 * Used to see if it is truly O(log(n))
+	 * @param item item to test
+	 * @return number of reads
+	 */
+	public int debug(T item) {
+		SkipList.readCount = 0;
+		contains(item);
+		return SkipList.readCount;
 	}
 }
