@@ -1,5 +1,8 @@
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-public class SkipListNode<T> {
+
+public class SkipListNode<T>{
+	public ReentrantReadWriteLock locks = new ReentrantReadWriteLock();
 	private SkipListNode<T> up;
 	private SkipListNode<T> down;
 	private SkipListNode<T> left;
